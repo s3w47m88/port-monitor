@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Port Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'hsl(222.2, 84%, 4.9%)',
+            foreground: 'hsl(210, 40%, 98%)',
+            card: 'hsl(222.2, 84%, 4.9%)',
+            'card-foreground': 'hsl(210, 40%, 98%)',
+            primary: 'hsl(210, 40%, 98%)',
+            'primary-foreground': 'hsl(222.2, 47.4%, 11.2%)',
+            secondary: 'hsl(217.2, 32.6%, 17.5%)',
+            'secondary-foreground': 'hsl(210, 40%, 98%)',
+            muted: 'hsl(217.2, 32.6%, 17.5%)',
+            'muted-foreground': 'hsl(215, 20.2%, 65.1%)',
+            accent: 'hsl(217.2, 32.6%, 17.5%)',
+            'accent-foreground': 'hsl(210, 40%, 98%)',
+            border: 'hsl(217.2, 32.6%, 17.5%)',
+            input: 'hsl(217.2, 32.6%, 17.5%)',
+            ring: 'hsl(212.7, 26.8%, 83.9%)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: hsl(222.2, 84%, 4.9%);
+      color: hsl(210, 40%, 98%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-app-region: drag;
+    }
+    button, input, .interactive {
+      -webkit-app-region: no-drag;
+    }
+  </style>
+</head>
+<body class="bg-background text-foreground">
+  <div id="app" class="container mx-auto p-6 max-w-6xl">
+    <!-- Removed outer border - no card wrapper here -->
+    <div>
+      <div class="flex flex-col space-y-1.5 pb-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h1 class="text-2xl font-semibold leading-none tracking-tight">Port Monitor</h1>
+            <p class="text-sm text-muted-foreground mt-1">
+              Monitoring <span id="port-count">0</span> active ports • Last updated: <span id="last-update">--:--:--</span>
+            </p>
+          </div>
+          <button id="refresh-btn" class="interactive inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium rounded-md h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+            <svg id="refresh-icon" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+              <path d="M8 16H3v5"/>
+            </svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+      <div>
+        <div class="space-y-4">
+          <div class="flex gap-4">
+            <div class="relative flex-1">
+              <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input id="search" type="text" placeholder="Search ports, processes, PIDs, or names..." class="interactive flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base pl-10 focus:outline-none focus:ring-2 focus:ring-ring">
+            </div>
+            <button id="filter-named" class="interactive inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium rounded-md h-10 px-4 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+              Named Only
+            </button>
+          </div>
+
+          <div class="border rounded-lg">
+            <div class="grid grid-cols-12 gap-4 p-3 bg-muted/50 font-medium text-sm">
+              <button class="interactive col-span-2 flex items-center gap-1 hover:text-primary transition-colors text-left" data-sort="port">
+                Port <span class="sort-icon">↕</span>
+              </button>
+              <button class="interactive col-span-3 flex items-center gap-1 hover:text-primary transition-colors text-left" data-sort="process">
+                Process <span class="sort-icon">↕</span>
+              </button>
+              <div class="col-span-2">PID</div>
+              <div class="col-span-1">Protocol</div>
+              <button class="interactive col-span-4 flex items-center gap-1 hover:text-primary transition-colors text-left" data-sort="name">
+                Custom Name <span class="sort-icon">↕</span>
+              </button>
+            </div>
+
+            <div id="ports-list" class="divide-y">
+              <div class="p-8 text-center text-muted-foreground">
+                Loading ports...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

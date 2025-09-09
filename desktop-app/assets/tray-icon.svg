@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple dots for menu bar -->
+  <circle cx="5" cy="11" r="2" fill="#ffffff"/>
+  <circle cx="11" cy="11" r="2" fill="#22c55e"/>
+  <circle cx="17" cy="11" r="2" fill="#3b82f6"/>
+</svg>

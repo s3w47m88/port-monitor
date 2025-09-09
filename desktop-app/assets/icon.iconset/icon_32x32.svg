@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background with rounded corners -->
+  <rect width="32" height="32" rx="3.2" fill="#1e293b"/>
+  
+  <!-- Grid pattern background -->
+  <defs>
+    <pattern id="grid" width="4" height="4" patternUnits="userSpaceOnUse">
+      <path d="M 4 0 L 0 0 0 4" fill="none" stroke="#334155" stroke-width="1" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="32" height="32" fill="url(#grid)" rx="3.2"/>
+  
+  <!-- Network connection lines -->
+  <g opacity="0.4">
+    <line x1="6.4" y1="9.6" x2="25.6" y2="9.6" stroke="#64748b" stroke-width="0.32"/>
+    <line x1="6.4" y1="16" x2="25.6" y2="16" stroke="#64748b" stroke-width="0.32"/>
+    <line x1="6.4" y1="22.4" x2="25.6" y2="22.4" stroke="#64748b" stroke-width="0.32"/>
+    <line x1="9.6" y1="6.4" x2="9.6" y2="25.6" stroke="#64748b" stroke-width="0.32"/>
+    <line x1="16" y1="6.4" x2="16" y2="25.6" stroke="#64748b" stroke-width="0.32"/>
+    <line x1="22.4" y1="6.4" x2="22.4" y2="25.6" stroke="#64748b" stroke-width="0.32"/>
+  </g>
+  
+  <!-- Port dots with glow effect -->
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="0.48" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Active ports (green) -->
+  <circle cx="9.6" cy="9.6" r="1.28" fill="#22c55e" filter="url(#glow)"/>
+  <circle cx="16" cy="9.6" r="1.28" fill="#22c55e" filter="url(#glow)"/>
+  <circle cx="22.4" cy="9.6" r="1.28" fill="#3b82f6" filter="url(#glow)"/>
+  
+  <!-- Middle row ports -->
+  <circle cx="9.6" cy="16" r="1.28" fill="#3b82f6" filter="url(#glow)"/>
+  <circle cx="16" cy="16" r="1.92" fill="#22c55e" filter="url(#glow)"/>
+  <circle cx="22.4" cy="16" r="1.28" fill="#8b5cf6" filter="url(#glow)"/>
+  
+  <!-- Bottom row ports -->
+  <circle cx="9.6" cy="22.4" r="1.28" fill="#8b5cf6" filter="url(#glow)"/>
+  <circle cx="16" cy="22.4" r="1.28" fill="#3b82f6" filter="url(#glow)"/>
+  <circle cx="22.4" cy="22.4" r="1.28" fill="#22c55e" filter="url(#glow)"/>
+  
+  <!-- Center "P" letter -->
+  <text x="16" y="16.96" font-family="SF Pro Display, Helvetica, Arial" font-size="4.8" font-weight="bold" fill="white" text-anchor="middle" opacity="0.9">P</text>
+</svg>

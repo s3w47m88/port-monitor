@@ -7,6 +7,7 @@ let showNamedOnly = false;
 let sortField = 'port';
 let sortOrder = 'asc';
 let isLoading = false;
+let killingPids = new Set();
 
 // Elements
 const portsList = document.getElementById('ports-list');
@@ -69,6 +70,40 @@ async function savePortName(port, name) {
   }
 }
 
+// Kill process
+async function killProcess(pid, processName) {
+  if (!confirm(`Are you sure you want to kill process "${processName}" (PID: ${pid})?`)) {
+    return;
+  }
+
+  killingPids.add(pid);
+  renderPorts();
+  
+  try {
+    const response = await fetch(`${API_URL}/api/kill-process`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pid })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(`Failed to kill process: ${result.error}`);
+    } else {
+      setTimeout(() => {
+        fetchPorts();
+      }, 500);
+    }
+  } catch (error) {
+    console.error('Error killing process:', error);
+    alert('Failed to kill process. Please try again.');
+  } finally {
+    killingPids.delete(pid);
+    renderPorts();
+  }
+}
+
 // Filter and sort ports
 function getFilteredAndSortedPorts() {
   let filtered = ports.filter(port => {
@@ -119,26 +154,52 @@ function renderPorts() {
     return;
   }
 
-  portsList.innerHTML = filteredPorts.map(port => `
+  portsList.innerHTML = filteredPorts.map(port => {
+    const isKilling = killingPids.has(port.pid);
+    return `
     <div class="grid grid-cols-12 gap-4 p-3 hover:bg-muted/30 transition-colors">
       <div class="col-span-2 font-mono font-semibold">${port.port}</div>
-      <div class="col-span-3 font-medium">${port.process}</div>
+      <div class="col-span-2 font-medium">${port.process}</div>
       <div class="col-span-2 text-muted-foreground">${port.pid}</div>
       <div class="col-span-1">
         <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
           ${port.protocol}
         </span>
       </div>
-      <div class="col-span-4">
+      <div class="col-span-3">
         <input type="text" 
           class="interactive port-name-input w-full bg-transparent hover:bg-muted/50 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-ring"
           data-port="${port.port}"
           value="${portNames[port.port] || ''}"
-          placeholder="Click to add name..."
+          placeholder="Add name..."
         />
       </div>
+      <div class="col-span-2">
+        <button 
+          class="interactive kill-btn inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium rounded-md h-8 px-3 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+          data-pid="${port.pid}"
+          data-process="${port.process}"
+          ${isKilling ? 'disabled' : ''}
+        >
+          ${isKilling ? `
+            <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+              <path d="M8 16H3v5"/>
+            </svg>
+            Killing...
+          ` : `
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Kill
+          `}
+        </button>
+      </div>
     </div>
-  `).join('');
+  `}).join('');
 
   // Add event listeners to name inputs
   document.querySelectorAll('.port-name-input').forEach(input => {
@@ -148,6 +209,15 @@ function renderPorts() {
       timeout = setTimeout(() => {
         savePortName(parseInt(e.target.dataset.port), e.target.value);
       }, 500);
+    });
+  });
+
+  // Add event listeners to kill buttons
+  document.querySelectorAll('.kill-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const pid = e.currentTarget.dataset.pid;
+      const processName = e.currentTarget.dataset.process;
+      killProcess(pid, processName);
     });
   });
 }

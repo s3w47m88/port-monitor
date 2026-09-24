@@ -103,6 +103,34 @@ function createAPIServer() {
     }
   });
 
+  // Kill process endpoint
+  apiApp.post('/api/kill-process', async (req, res) => {
+    const { pid } = req.body;
+    
+    if (!pid) {
+      return res.status(400).json({ error: 'PID is required' });
+    }
+    
+    exec(`kill -9 ${pid}`, (error, stdout, stderr) => {
+      if (error) {
+        if (error.code === 1 && stderr && stderr.includes('No such process')) {
+          return res.status(404).json({ error: 'Process not found or already terminated' });
+        }
+        
+        if (stderr && stderr.includes('Operation not permitted')) {
+          return res.status(403).json({ error: 'Permission denied. Cannot kill this process.' });
+        }
+        
+        return res.status(500).json({ error: error.message || 'Failed to kill process' });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Process ${pid} killed successfully` 
+      });
+    });
+  });
+
   server = apiApp.listen(API_PORT, () => {
     console.log(`API server running on port ${API_PORT}`);
   });

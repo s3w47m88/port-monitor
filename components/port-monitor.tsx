@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Save, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Save, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, X } from 'lucide-react';
 
 interface Port {
   port: number;
@@ -28,6 +28,7 @@ export default function PortMonitor() {
   const [sortField, setSortField] = useState<SortField>('port');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [killingPids, setKillingPids] = useState<Set<string>>(new Set());
 
   const fetchPorts = useCallback(async () => {
     setLoading(true);
@@ -75,6 +76,41 @@ export default function PortMonitor() {
       setEditValue('');
     } catch (error) {
       console.error('Error saving port name:', error);
+    }
+  };
+
+  const killProcess = async (pid: string, processName: string) => {
+    if (!confirm(`Are you sure you want to kill process "${processName}" (PID: ${pid})?`)) {
+      return;
+    }
+
+    setKillingPids(prev => new Set(prev).add(pid));
+    
+    try {
+      const response = await fetch('/api/kill-process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pid })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(`Failed to kill process: ${result.error}`);
+      } else {
+        setTimeout(() => {
+          fetchPorts();
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error killing process:', error);
+      alert('Failed to kill process. Please try again.');
+    } finally {
+      setKillingPids(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(pid);
+        return newSet;
+      });
     }
   };
 
@@ -195,7 +231,7 @@ export default function PortMonitor() {
                   Port <SortIcon field="port" />
                 </button>
                 <button
-                  className="col-span-3 flex items-center gap-1 hover:text-primary transition-colors"
+                  className="col-span-2 flex items-center gap-1 hover:text-primary transition-colors"
                   onClick={() => handleSort('process')}
                 >
                   Process <SortIcon field="process" />
@@ -203,11 +239,12 @@ export default function PortMonitor() {
                 <div className="col-span-2">PID</div>
                 <div className="col-span-1">Protocol</div>
                 <button
-                  className="col-span-4 flex items-center gap-1 hover:text-primary transition-colors"
+                  className="col-span-3 flex items-center gap-1 hover:text-primary transition-colors"
                   onClick={() => handleSort('name')}
                 >
                   Custom Name <SortIcon field="name" />
                 </button>
+                <div className="col-span-2">Actions</div>
               </div>
 
               <div className="divide-y">
@@ -221,7 +258,7 @@ export default function PortMonitor() {
                       <div className="col-span-2 font-mono font-semibold">
                         {port.port}
                       </div>
-                      <div className="col-span-3 font-medium">
+                      <div className="col-span-2 font-medium">
                         {port.process}
                       </div>
                       <div className="col-span-2 text-muted-foreground">
@@ -232,7 +269,7 @@ export default function PortMonitor() {
                           {port.protocol}
                         </Badge>
                       </div>
-                      <div className="col-span-4">
+                      <div className="col-span-3">
                         {editingPort === port.port ? (
                           <div className="flex gap-2">
                             <Input
@@ -275,10 +312,30 @@ export default function PortMonitor() {
                             {portNames[port.port] ? (
                               <span className="font-medium">{portNames[port.port]}</span>
                             ) : (
-                              <span className="text-muted-foreground">Click to add name...</span>
+                              <span className="text-muted-foreground">Add name...</span>
                             )}
                           </button>
                         )}
+                      </div>
+                      <div className="col-span-2">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => killProcess(port.pid, port.process)}
+                          disabled={killingPids.has(port.pid)}
+                        >
+                          {killingPids.has(port.pid) ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                              Killing...
+                            </>
+                          ) : (
+                            <>
+                              <X className="w-4 h-4 mr-1" />
+                              Kill
+                            </>
+                          )}
+                        </Button>
                       </div>
                     </div>
                   ))
